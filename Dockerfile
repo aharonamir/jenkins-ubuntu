@@ -2,6 +2,8 @@ FROM ubuntu:wily
 
 RUN apt-get update && apt-get install -y openjdk-8-jdk wget git curl zip && rm -rf /var/lib/apt/lists/*
 
+RUN update-ca-certificates -f
+
 ENV JENKINS_HOME /var/jenkins_home
 
 # Jenkins is ran with user `jenkins`, uid = 1000
