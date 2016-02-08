@@ -1,6 +1,6 @@
 FROM ubuntu:wily
 
-RUN apt-get update && apt-get install -y openjdk-8-jdk wget git curl zip && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends openjdk-8-jdk wget git curl zip && rm -rf /var/lib/apt/lists/*
 
 RUN update-ca-certificates -f
 
