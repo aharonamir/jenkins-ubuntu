@@ -1,6 +1,6 @@
-FROM ubuntu:wily
+FROM ubuntu:trusty
 
-RUN apt-get update && apt-get install -y --no-install-recommends openjdk-8-jdk wget git curl zip && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends openjdk-8-jdk wget git curl zip g++ cmake && rm -rf /var/lib/apt/lists/*
 
 RUN update-ca-certificates -f
 
@@ -25,13 +25,27 @@ RUN curl -fL https://github.com/krallin/tini/releases/download/v0.5.0/tini-stati
 
 COPY init.groovy /usr/share/jenkins/ref/init.groovy.d/tcp-slave-agent-port.groovy
 
-ENV JENKINS_VERSION 1.651.3
-ENV JENKINS_SHA 564e49fbd180d077a22a8c7bb5b8d4d58d2a18ce
+# jenkins version being bundled in this docker image
+ARG JENKINS_VERSION
+ENV JENKINS_VERSION ${JENKINS_VERSION:-2.60.3}
+
+# jenkins.war checksum, download will be validated using it
+ARG JENKINS_SHA=2d71b8f87c8417f9303a73d52901a59678ee6c0eefcf7325efed6035ff39372a
+
+# Can be used to customize where jenkins.war get downloaded from
+ARG JENKINS_URL=https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${JENKINS_VERSION}/jenkins-war-${JENKINS_VERSION}.war
+# could use ADD but this one does not check Last-Modified header neither does it allow to control checksum 
+# see https://github.com/docker/docker/issues/8331
+RUN curl -fsSL ${JENKINS_URL} -o /usr/share/jenkins/jenkins.war \
+  && echo "${JENKINS_SHA}  /usr/share/jenkins/jenkins.war" | sha256sum -c -
+
+#ENV JENKINS_VERSION 1.651.3
+#ENV JENKINS_SHA 564e49fbd180d077a22a8c7bb5b8d4d58d2a18ce
 
 # could use ADD but this one does not check Last-Modified header
 # see https://github.com/docker/docker/issues/8331
-RUN curl -fL http://mirrors.jenkins-ci.org/war-stable/$JENKINS_VERSION/jenkins.war -o /usr/share/jenkins/jenkins.war \
-  && echo "$JENKINS_SHA /usr/share/jenkins/jenkins.war" | sha1sum -c -
+#RUN curl -fL http://mirrors.jenkins-ci.org/war-stable/$JENKINS_VERSION/jenkins.war -o /usr/share/jenkins/jenkins.war \
+#  && echo "$JENKINS_SHA /usr/share/jenkins/jenkins.war" | sha1sum -c -
 
 ENV JENKINS_UC https://updates.jenkins-ci.org
 RUN chown -R jenkins "$JENKINS_HOME" /usr/share/jenkins/ref
@@ -43,6 +57,22 @@ EXPOSE 8080
 EXPOSE 50000
 
 ENV COPY_REFERENCE_FILE_LOG $JENKINS_HOME/copy_reference_file.log
+
+# Install docker-engine
+# According to Petazzoni's article:
+# ---------------------------------
+# "Former versions of this post advised to bind-mount the docker binary from
+# the host to the container. This is not reliable anymore, because the Docker
+# Engine is no longer distributed as (almost) static libraries."
+#ARG docker_version=1.11.2
+RUN curl -sSL https://get.docker.com/ | sh && \
+    apt-get purge -y docker-ce && \
+    apt-get install docker-ce
+
+# Make sure jenkins user has docker privileges
+RUN usermod -aG docker jenkins
+# allow jenkins to run sudo
+RUN echo "jenkins ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 USER jenkins
 
