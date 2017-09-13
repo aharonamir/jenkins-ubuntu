@@ -11,7 +11,7 @@ RUN apt-get update && \
     apt-get clean&& \ 
     apt-get install oracle-java8-set-default
 
-RUN apt-get update && apt-get install -y --no-install-recommends wget git curl zip g++ cmake && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends wget git curl zip make g++ cmake && rm -rf /var/lib/apt/lists/*
 
 RUN update-ca-certificates -f
 
