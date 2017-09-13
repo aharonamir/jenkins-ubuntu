@@ -11,7 +11,11 @@ RUN apt-get update && \
     apt-get clean&& \ 
     apt-get install oracle-java8-set-default
 
-RUN apt-get update && apt-get install -y --no-install-recommends wget git curl zip make g++ cmake && rm -rf /var/lib/apt/lists/*
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y
+RUN apt-get update && apt-get install -y --no-install-recommends wget git curl zip make g++-4.9 cmake && rm -rf /var/lib/apt/lists/*
+
+RUN ln -s /usr/bin/gcc-4.9 /usr/bin/gcc
+RUN ln -s /usr/bin/g++-4.9 /usr/bin/g++
 
 RUN update-ca-certificates -f
 
