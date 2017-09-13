@@ -16,6 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget git curl z
 
 RUN ln -s /usr/bin/gcc-4.9 /usr/bin/gcc
 RUN ln -s /usr/bin/g++-4.9 /usr/bin/g++
+RUN ln -s /usr/bin/gcc /usr/bin/cc
+RUN ln -s /usr/bin/g++ /usr/bin/c++
 
 RUN update-ca-certificates -f
 
